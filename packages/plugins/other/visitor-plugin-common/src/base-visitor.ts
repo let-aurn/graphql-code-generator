@@ -16,12 +16,14 @@ import { ImportDecleration, FragmentImport } from './imports';
 
 export interface BaseVisitorConvertOptions {
   useTypesPrefix?: boolean;
+  useTypesSuffix?: boolean;
 }
 
 export interface ParsedConfig {
   scalars: ParsedScalarsMap;
   convert: ConvertFn;
   typesPrefix: string;
+  typesSuffix: string;
   addTypename: boolean;
   nonOptionalTypename: boolean;
   externalFragments: LoadedFragment[];
@@ -96,6 +98,19 @@ export interface RawConfig {
    */
   typesPrefix?: string;
   /**
+   * @name typesSuffix
+   * @type string
+   * @default ""
+   * @description Add suffix to all the generated types.
+   *
+   * @example Add "Model" Suffix
+   * ```yml
+   * config:
+   *   typesSuffix: Model
+   * ```
+   */
+  typesSuffix?: string;
+  /**
    * @name skipTypename
    * @type boolean
    * @default false
@@ -159,8 +174,11 @@ export class BaseVisitor<TRawConfig extends RawConfig = RawConfig, TPluginConfig
 
   public convertName(node: ASTNode | string, options?: BaseVisitorConvertOptions & ConvertOptions): string {
     const useTypesPrefix = typeof (options && options.useTypesPrefix) === 'boolean' ? options.useTypesPrefix : true;
+    const useTypesSuffix = typeof (options && options.useTypesSuffix) === 'boolean' ? options.useTypesSuffix : true;
 
-    return (useTypesPrefix ? this.config.typesPrefix : '') + this.config.convert(node, options);
+    const prefix = useTypesPrefix ? this.config.typesPrefix : '';
+    const suffix = useTypesSuffix ? this.config.typesSuffix : '';
+    return prefix + this.config.convert(node, options) + suffix;
   }
 
   public getOperationSuffix(
